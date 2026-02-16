@@ -3,15 +3,19 @@
 Execute the following in your home directory or similar location:
 ```bash
 git clone https://github.com/IriyaAkira/snipe-it-setting.git snipe-it
+curl https://raw.githubusercontent.com/snipe/snipe-it/master/.env.docker --output .env
 ```
 Edit ./snipe-it/.env
 ```yaml
 # Extract only the parts that need to be changed.
-APP_KEY=base64:****************************************
 APP_URL=http://www.example.com
 APP_TIMEZONE='Asia/Tokyo'
 DB_PASSWORD=changeme1234
 MYSQL_ROOT_PASSWORD=changeme1234
+# Add For Backup
+BK_SERVER=HOSTNAME
+BK_SHARE=SHARENAME
+MOUNT_POINT=/mnt/foo/bar
 ```
 Edit /root/.smbcredentials For backup.
 ```yaml
