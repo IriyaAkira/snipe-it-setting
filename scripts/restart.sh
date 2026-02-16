@@ -41,36 +41,21 @@ if [[ -f "${LOG_FILE}" ]] && [[ $(wc -l < "${LOG_FILE}") -gt ${MAX_LINES} ]]; th
 fi
 
 # ===== 終了処理 =====
-log_info "Changing directory to ${BASE_DIR}"
-cd "${BASE_DIR}"
-
-log_info "Stop snipeit server..."
-if "${DOCKER_BIN}" compose down 2>&1 | tee -a "${LOG_FILE}"; then
-    log_info "snipeit server stopped successfully."
+log_info "Execute the stop script"
+if bash "${SCRIPT_DIR}/stop.sh"; then
+    log_info "Stop script completed successfully."
 else
-    log_error "Failed to stop snipeit server."
+    log_error "Stop script failed."
+    exit 1
 fi
 
-# ===== コンテナ停止確認 =====
-log_info "Waiting for all containers to be down..."
-MAX_RETRIES=30
-RETRY_COUNT=0
-WAIT_INTERVAL=1
-
-while [ ${RETRY_COUNT} -lt ${MAX_RETRIES} ]; do
-    RUNNING_CONTAINERS=$("${DOCKER_BIN}" compose ps -q 2>/dev/null | wc -l)
-    if [ "${RUNNING_CONTAINERS}" -eq 0 ]; then
-        log_info "All containers are down."
-        break
-    fi
-    log_info "Still waiting... (${RETRY_COUNT}/${MAX_RETRIES}) Running containers: ${RUNNING_CONTAINERS}"
-    sleep ${WAIT_INTERVAL}
-    RETRY_COUNT=$((RETRY_COUNT + 1))
-done
-
-if [ ${RETRY_COUNT} -ge ${MAX_RETRIES} ]; then
-    log_error "Timeout waiting for containers to stop. Current status:"
-    "${DOCKER_BIN}" compose ps 2>&1 | tee -a "${LOG_FILE}"
+# ===== 再スタート処理 =====
+log_info "Execute the start script"
+if bash "${SCRIPT_DIR}/start.sh"; then
+    log_info "Start script completed successfully."
+else
+    log_error "Start script failed."
+    exit 1
 fi
 
 # ===== ログ終了 =====
