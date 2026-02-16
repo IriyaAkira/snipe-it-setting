@@ -3,3 +3,8 @@ db_init/
 storage/
 logs/
 log/
+*.crt
+*.csr
+*.key
+*.cnf
+*.cer
