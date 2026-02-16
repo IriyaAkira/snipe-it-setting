@@ -6,7 +6,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BASE_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 DOCKER_BIN="/usr/bin/docker"
 SCRIPT_NAME="$(basename "${BASH_SOURCE[0]}")"
-LOG_FILE="${SCRIPT_DIR}/logs/${SCRIPT_NAME%.*}.log"
+LOG_DIR="$(cd "${SCRIPT_DIR}/logs" && pwd)"
+LOG_FILE="${LOG_DIR}/${SCRIPT_NAME%.*}.log"
 
 # ===== root チェック =====
 if [ "$(id -u)" -ne 0 ]; then

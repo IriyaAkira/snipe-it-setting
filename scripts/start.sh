@@ -6,8 +6,9 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BASE_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 DOCKER_BIN="/usr/bin/docker"
 SCRIPT_NAME="$(basename "${BASH_SOURCE[0]}")"
-LOG_FILE="${SCRIPT_DIR}/logs/${SCRIPT_NAME%.*}.log"
-ENV_FILE="$BASE_DIR/.env"
+LOG_DIR="$(cd "${SCRIPT_DIR}/logs" && pwd)"
+LOG_FILE="${LOG_DIR}/${SCRIPT_NAME%.*}.log"
+ENV_FILE="${BASE_DIR}/.env"
 
 # ===== root チェック =====
 if [ "$(id -u)" -ne 0 ]; then
@@ -100,7 +101,7 @@ log_info "Generating APP_KEY..."
 set +e
 APP_KEY="$(
   "${DOCKER_BIN}" compose run --rm app \
-    php artisan key:generate --show 2>&1 \
+    php artisan key:generate --show 2>/dev/null \
     | tr -d '\r'
 )"
 RC=$?
