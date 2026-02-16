@@ -18,7 +18,7 @@ echo "${SCRIPT_NAME} running as root"
 
 # ===== .env 読み込み =====
 set -a
-. "$ENV_FILE"
+. "${ENV_FILE}"
 set +a
 
 # ===== ログディレクトリ作成 =====
@@ -67,29 +67,30 @@ if [[ -z "${DB_CONTAINER}" ]]; then
 fi
 
 # DB healthcheck ループ
-MAX_RETRY=60
+MAX_RETRIES=60
 RETRY_COUNT=0
 HEALTH_STATUS=""
+WAIT_INTERVAL=2
 
 log_info "Waiting for DB to become healthy... (Container ID: ${DB_CONTAINER})"
-while [ $RETRY_COUNT -lt $MAX_RETRY ]; do
-  HEALTH_STATUS="$("$DOCKER_BIN" inspect --format='{{.State.Health.Status}}' "$DB_CONTAINER" 2>&1 || echo "unknown")"
-  log_info "DB health check attempt $((RETRY_COUNT + 1))/$MAX_RETRY: Status = $HEALTH_STATUS"
+while [ ${RETRY_COUNT} -lt ${MAX_RETRIES} ]; do
+  HEALTH_STATUS="$("$DOCKER_BIN" inspect --format='{{.State.Health.Status}}' "${DB_CONTAINER}" 2>&1 || echo "unknown")"
+  log_info "DB health check attempt $((RETRY_COUNT + 1))/${MAX_RETRIES}: Status = ${HEALTH_STATUS}"
   
-  if [ "$HEALTH_STATUS" = "healthy" ]; then
+  if [ "${HEALTH_STATUS}" = "healthy" ]; then
     log_info "DB is healthy"
     break
   fi
   
   RETRY_COUNT=$((RETRY_COUNT + 1))
   
-  if [ $RETRY_COUNT -lt $MAX_RETRY ]; then
-    sleep 2
+  if [ ${RETRY_COUNT} -lt ${MAX_RETRIES} ]; then
+    sleep ${WAIT_INTERVAL}
   fi
 done
 
-if [ "$HEALTH_STATUS" != "healthy" ]; then
-  log_error "DB failed to become healthy after $((MAX_RETRY * 2)) seconds (Final status: $HEALTH_STATUS)"
+if [ "${HEALTH_STATUS}" != "healthy" ]; then
+  log_error "DB failed to become healthy after $((${MAX_RETRIES} * ${WAIT_INTERVAL})) seconds (Final status: $HEALTH_STATUS)"
   exit 1
 fi
 
@@ -98,19 +99,19 @@ log_info "Generating APP_KEY..."
 # disable errexit temporarily to capture command output and exit code
 set +e
 APP_KEY="$(
-  "$DOCKER_BIN" compose run --rm app \
+  "${DOCKER_BIN}" compose run --rm app \
     php artisan key:generate --show 2>&1 \
     | tr -d '\r'
 )"
 RC=$?
 set -e
 
-if [ $RC -ne 0 ]; then
-  log_error "APP_KEY generation command failed (rc=$RC). Output: ${APP_KEY}"
+if [ ${RC} -ne 0 ]; then
+  log_error "APP_KEY generation command failed (rc=${RC}). Output: ${APP_KEY}"
   exit 1
 fi
 
-if [[ -z "$APP_KEY" ]]; then
+if [[ -z "${APP_KEY}" ]]; then
   log_error "APP_KEY is empty after generation"
   exit 1
 fi
@@ -118,10 +119,10 @@ log_info "APP_KEY generated successfully"
 
 # .env 更新
 log_info "Update env file..."
-if grep -q '^APP_KEY=' "$ENV_FILE"; then
-  sed -i "s|^APP_KEY=.*|APP_KEY=$APP_KEY|" "$ENV_FILE"
+if grep -q '^APP_KEY=' "${ENV_FILE}"; then
+  sed -i "s|^APP_KEY=.*|APP_KEY=${APP_KEY}|" "${ENV_FILE}"
 else
-  echo "APP_KEY=$APP_KEY" >> "$ENV_FILE"
+  echo "APP_KEY=${APP_KEY}" >> "${ENV_FILE}"
 fi
 log_info "APP_KEY updated successfully"
 
