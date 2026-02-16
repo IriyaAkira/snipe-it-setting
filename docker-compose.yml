@@ -1,17 +1,22 @@
-# Compose file for production.
-
-volumes:
-  db_data:
-  storage:
-
 services:
+  reverse-proxy:
+    image: nginx:1.28.1
+    container_name: snipeit-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./nginx/certs:/etc/nginx/certs:ro
+    depends_on:
+      - app
+    restart: unless-stopped
+
   app:
     image: snipe/snipe-it:v8.3.7
     restart: unless-stopped
     volumes:
       - ./storage:/var/lib/snipeit
-    ports:
-      - "${APP_PORT:-8000}:80"
     depends_on:
       db:
         condition: service_healthy
@@ -36,3 +41,7 @@ services:
       interval: 5s
       timeout: 1s
       retries: 5
+
+volumes:
+  db_data:
+  storage:
