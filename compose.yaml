@@ -8,6 +8,8 @@ services:
     volumes:
       - ./nginx/conf.d:/etc/nginx/conf.d:ro
       - ./nginx/certs:/etc/nginx/certs:ro
+    environment:
+      TZ: ${TZ}
     depends_on:
       - app
     restart: unless-stopped
@@ -35,6 +37,7 @@ services:
       MYSQL_USER: ${DB_USERNAME}
       MYSQL_PASSWORD: ${DB_PASSWORD}
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      TZ: ${TZ}
     healthcheck:
       # https://mariadb.com/kb/en/using-healthcheck-sh/#compose-file-example
       test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
